@@ -1,3 +1,9 @@
+{{
+  config(
+    materialized='view'
+  )
+}}
+
 with
     bing as (
         select
@@ -40,7 +46,7 @@ with
             comments as comments,
             creative_id as creative_id,
             date as date,
-            null as engagements,
+            (views_2+shares_2+clicks_2) as engagements,
             impressions as impressions,
             mobile_app_install as installs,
             likes as likes,
@@ -54,7 +60,7 @@ with
             null as revenue,
             shares as shares,
             spend as spend,
-            null as total_conversions,
+            purchase_2 as total_conversions,
             views as video_views
         from {{ ref("src_ads_creative_facebook_all_data") }}
     ),
@@ -120,27 +126,38 @@ with
     ),
 
     paid_ads__basic_performance as (
-        select 
-            bing.*
-        from bing
-
+        select bing.* from bing
         UNION ALL
-
-        select 
-            facebook.*
-        from facebook
-
+        select facebook.* from facebook
         UNION ALL
-
-        select 
-            tiktok.*
-        from tiktok
-
+        select tiktok.* from tiktok
         UNION ALL
+        select twitter.* from twitter)
 
-        select 
-            twitter.*
-        from twitter
-    )
-
-select * from paid_ads__basic_performance
+select 
+    cast(ad_id as string) as ad_id,
+    add_to_cart,
+    cast(adset_id as string) as adset_id,
+    cast(campaign_id as string) as campaign_id,
+    channel,
+    clicks,
+    comments,
+    cast(creative_id as string) as creative_id,
+    date,
+    engagements,
+    impressions,
+    installs,
+    likes,
+    link_clicks,
+    cast(placement_id as string) as placement_id,
+    post_click_conversions,
+    post_view_conversions,
+    posts,
+    purchase,
+    registrations,
+    revenue,
+    shares,
+    spend,
+    total_conversions,
+    video_views
+from paid_ads__basic_performance
